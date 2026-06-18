@@ -1,43 +1,20 @@
 name: Build APK
-
-on:
-  push:
-    branches: [ main ]
-
+on: [push]
 jobs:
   build:
     runs-on: ubuntu-latest
-
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v4
-
-    - name: Instalar dependências
-      run: |
-        sudo apt update
-        sudo apt install -y git zip unzip openjdk-11-jdk
-        pip install --upgrade pip
-        pip install buildozer
-
-    - name: Inicializar e Compilar
-      run: |
-        # Verifica se o arquivo main_v9.py está realmente lá
-        ls -la
-        
-        # Cria o arquivo de configuração
-        buildozer init
-        
-        # Aplica as alterações
-        sed -i 's/package.domain = org.test/package.domain = com.neon.militia/' buildozer.spec
-        sed -i 's/package.name = myapp/package.name = NeonMilitia/' buildozer.spec
-        sed -i 's/main.py/main_v9.py/' buildozer.spec
-        sed -i 's/requirements = python3,kivy/requirements = python3,kivy,kivy-deps.sdl2,kivy-deps.gstreamer/' buildozer.spec
-        
-        # Inicia a compilação
-        buildozer android debug
-
-    - name: Upload APK
-      uses: actions/upload-artifact@v4
+    - uses: actions/checkout@v4
+    - uses: kivy/buildozer-action@v2
+      with:
+        python-version: '3.9'
+        requirements: 'python3,kivy,kivy-deps.sdl2,kivy-deps.gstreamer'
+        buildozer-command: |
+          sed -i 's/package.domain = org.test/package.domain = com.neon.militia/' buildozer.spec
+          sed -i 's/package.name = myapp/package.name = NeonMilitia/' buildozer.spec
+          sed -i 's/main.py/main_v9.py/' buildozer.spec
+          buildozer android debug
+    - uses: actions/upload-artifact@v4
       with:
         name: NeonMilitia-APK
         path: bin/*.apk
